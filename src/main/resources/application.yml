@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: S3FileManager
+
+  config:
+    import: optional:file:.env[.properties]
