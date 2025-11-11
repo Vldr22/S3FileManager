@@ -1,7 +1,12 @@
 package org.resume.s3filemanager.controller;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import org.resume.s3filemanager.service.YandexStorageService;
+import org.resume.s3filemanager.dto.CommonResponse;
+import org.resume.s3filemanager.dto.FileDownloadResponse;
+import org.resume.s3filemanager.exception.Messages;
+import org.resume.s3filemanager.service.FileFacadeService;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,16 +17,37 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class FileController {
 
-    private final YandexStorageService yandexStorageService;
+    private final FileFacadeService fileFacadeService;
+    private final static String FILENAME_NOT_EMPTY = "filename cannot be empty";
 
     @PostMapping("/upload")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<String> upload (@RequestParam("file")
+    public CommonResponse<String> upload (@RequestParam("file")
             MultipartFile file) {
+        fileFacadeService.uploadFile(file);
+        return CommonResponse.success(Messages.FILE_UPLOAD_SUCCESS);
+    }
 
-        yandexStorageService.uploadFileYandexS3(file);
+    @GetMapping("/download/{fileName}")
+    public ResponseEntity<ByteArrayResource> download(
+            @PathVariable
+            @NotBlank(message = FILENAME_NOT_EMPTY)
+            String fileName) {
+
+        FileDownloadResponse response = fileFacadeService.downloadFile(fileName);
+        ByteArrayResource resource = new ByteArrayResource(response.getContent());
+
         return ResponseEntity
                 .ok()
-                .build();
+                .contentLength(response.getSize())
+                .header("Content-Type", response.getContentType())
+                .header("Content-Disposition", "attachment; filename*=UTF-8''" + response.getFileName())
+                .body(resource);
+    }
+
+    @DeleteMapping("/delete/{fileName}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable String fileName) {
+        fileFacadeService.deleteFile(fileName);
     }
 }
