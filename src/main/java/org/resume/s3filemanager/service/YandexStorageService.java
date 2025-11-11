@@ -1,21 +1,18 @@
 package org.resume.s3filemanager.service;
 
-import com.amazonaws.services.kms.model.AWSKMSException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.*;
+import com.amazonaws.util.IOUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.resume.s3filemanager.exception.Messages;
+import org.resume.s3filemanager.exception.S3YandexException;
 import org.resume.s3filemanager.properties.YandexStorageProperties;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
-
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -25,28 +22,59 @@ public class YandexStorageService {
     private final AmazonS3 yandexS3Client;
     private final YandexStorageProperties properties;
 
-    public void uploadFileYandexS3(MultipartFile file) {
-        String uniqueFileName = generateUniqueUUIDFileName(file.getName());
+    public void uploadFileYandexS3(String uniqueFileName, byte[] bytes, String contentType) {
+        ObjectMetadata metadata = createObjectMetadata(bytes, contentType);
 
-        try(InputStream inputStream = new ByteArrayInputStream(file.getBytes())) {
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(file.getBytes().length);
-            metadata.setContentType(file.getContentType());
-
-            PutObjectRequest request = new PutObjectRequest(properties.getBucketName(), uniqueFileName, inputStream, metadata);
+        try (InputStream is = new ByteArrayInputStream(bytes)) {
+            PutObjectRequest request = new PutObjectRequest(
+                    properties.getBucketName(),
+                    uniqueFileName,
+                    is,
+                    metadata
+            );
             yandexS3Client.putObject(request);
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-            throw new AWSKMSException(e.getMessage());
+            log.info("File uploaded to S3: {}, size: {} bytes", uniqueFileName, bytes.length);
+
+        } catch (AmazonS3Exception e) {
+            log.error("S3 error uploading file: {}", uniqueFileName, e);
+            throw new S3YandexException(Messages.FILE_STORAGE_ERROR, e);
+        } catch (Exception e) {
+            log.error("Unexpected error uploading file: {}", uniqueFileName, e);
+            throw new S3YandexException(Messages.FILE_STORAGE_ERROR, e);
         }
-        log.info("File uploaded: {} ", uniqueFileName);
     }
 
-    private String generateUniqueUUIDFileName(String originalFilename) {
-        String extension = StringUtils.getFilenameExtension(originalFilename);
-        extension = (extension != null && !extension.isBlank()) ? extension : "tmp";
+    public byte[] downloadFileYandexS3(String uniqueFileName) {
+        try (S3Object s3Object = yandexS3Client.getObject(properties.getBucketName(), uniqueFileName);
+             S3ObjectInputStream inputStream = s3Object.getObjectContent()) {
 
-        return UUID.randomUUID() + "." + extension;
+            byte[] data = IOUtils.toByteArray(inputStream);
+            log.info("File downloaded from S3: {}, size: {} bytes", uniqueFileName, data.length);
+            return data;
+
+        } catch (AmazonS3Exception e) {
+            log.error("File not found in S3: {}", uniqueFileName, e);
+            throw new S3YandexException(Messages.FILE_STORAGE_ERROR, e);
+        } catch (IOException e) {
+            log.error("IO error downloading file: {}", uniqueFileName, e);
+            throw new S3YandexException(Messages.FILE_STORAGE_ERROR, e);
+        }
     }
 
+    public void deleteFileYandexS3(String fileName) {
+        try {
+            yandexS3Client.deleteObject(properties.getBucketName(), fileName);
+            log.info("File deleted from S3: {}", fileName);
+        } catch (AmazonS3Exception e) {
+            log.error("S3 error deleting file: {}", fileName, e);
+            throw new S3YandexException(Messages.FILE_STORAGE_ERROR, e);
+        }
+    }
+
+    private ObjectMetadata createObjectMetadata(byte[] bytes, String contentType) {
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(bytes.length);
+        metadata.setContentType(contentType);
+        return metadata;
+    }
 }
