@@ -2,14 +2,12 @@ package org.resume.s3filemanager.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.HashSet;
-import java.util.Set;
+import org.resume.s3filemanager.enums.FileUploadStatus;
+import org.resume.s3filemanager.enums.UserRole;
 
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "users")
 public class User {
@@ -24,11 +22,12 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    private Set<Role> roles = new HashSet<>();
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role;
 
-    public User(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private FileUploadStatus uploadStatus = FileUploadStatus.NOT_UPLOADED;
+
 }
