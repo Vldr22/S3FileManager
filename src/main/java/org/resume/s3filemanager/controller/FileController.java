@@ -2,10 +2,10 @@ package org.resume.s3filemanager.controller;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.resume.s3filemanager.constant.SuccessMessages;
 import org.resume.s3filemanager.dto.CommonResponse;
 import org.resume.s3filemanager.dto.FileDownloadResponse;
-import org.resume.s3filemanager.exception.Messages;
-import org.resume.s3filemanager.service.FileFacadeService;
+import org.resume.s3filemanager.service.file.FileFacadeService;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,10 +25,10 @@ public class FileController {
     public CommonResponse<String> upload (@RequestParam("file")
             MultipartFile file) {
         fileFacadeService.uploadFile(file);
-        return CommonResponse.success(Messages.FILE_UPLOAD_SUCCESS);
+        return CommonResponse.success(SuccessMessages.FILE_UPLOAD_SUCCESS);
     }
 
-    @GetMapping("/download/{fileName}")
+    @GetMapping("/{fileName}")
     public ResponseEntity<ByteArrayResource> download(
             @PathVariable
             @NotBlank(message = FILENAME_NOT_EMPTY)
@@ -45,7 +45,7 @@ public class FileController {
                 .body(resource);
     }
 
-    @DeleteMapping("/delete/{fileName}")
+    @DeleteMapping("/{fileName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable String fileName) {
         fileFacadeService.deleteFile(fileName);
