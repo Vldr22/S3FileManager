@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.resume.s3filemanager.enums.ResponseStatus;
 import org.springframework.http.ProblemDetail;
 
 import java.time.LocalDateTime;
