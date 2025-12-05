@@ -1,11 +1,11 @@
-package org.resume.s3filemanager.service;
+package org.resume.s3filemanager.service.file;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import com.amazonaws.util.IOUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.resume.s3filemanager.exception.Messages;
+import org.resume.s3filemanager.constant.ErrorMessages;
 import org.resume.s3filemanager.exception.S3YandexException;
 import org.resume.s3filemanager.properties.YandexStorageProperties;
 import org.springframework.stereotype.Service;
@@ -37,10 +37,10 @@ public class YandexStorageService {
 
         } catch (AmazonS3Exception e) {
             log.error("S3 error uploading file: {}", uniqueFileName, e);
-            throw new S3YandexException(Messages.FILE_STORAGE_ERROR, e);
+            throw new S3YandexException(ErrorMessages.FILE_STORAGE_ERROR, e);
         } catch (Exception e) {
             log.error("Unexpected error uploading file: {}", uniqueFileName, e);
-            throw new S3YandexException(Messages.FILE_STORAGE_ERROR, e);
+            throw new S3YandexException(ErrorMessages.FILE_STORAGE_ERROR, e);
         }
     }
 
@@ -54,10 +54,10 @@ public class YandexStorageService {
 
         } catch (AmazonS3Exception e) {
             log.error("File not found in S3: {}", uniqueFileName, e);
-            throw new S3YandexException(Messages.FILE_STORAGE_ERROR, e);
+            throw new S3YandexException(ErrorMessages.FILE_STORAGE_ERROR, e);
         } catch (IOException e) {
             log.error("IO error downloading file: {}", uniqueFileName, e);
-            throw new S3YandexException(Messages.FILE_STORAGE_ERROR, e);
+            throw new S3YandexException(ErrorMessages.FILE_STORAGE_ERROR, e);
         }
     }
 
@@ -67,7 +67,7 @@ public class YandexStorageService {
             log.info("File deleted from S3: {}", fileName);
         } catch (AmazonS3Exception e) {
             log.error("S3 error deleting file: {}", fileName, e);
-            throw new S3YandexException(Messages.FILE_STORAGE_ERROR, e);
+            throw new S3YandexException(ErrorMessages.FILE_STORAGE_ERROR, e);
         }
     }
 

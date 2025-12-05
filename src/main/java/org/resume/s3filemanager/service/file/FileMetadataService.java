@@ -1,11 +1,11 @@
-package org.resume.s3filemanager.service;
+package org.resume.s3filemanager.service.file;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.resume.s3filemanager.entity.FileMetadata;
-import org.resume.s3filemanager.exception.Messages;
+import org.resume.s3filemanager.constant.ErrorMessages;
 import org.resume.s3filemanager.repository.FileMetadataRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,7 +35,7 @@ public class FileMetadataService {
         int deleted = fileMetadataRepository.deleteByUniqueName(uniqueName);
         if (deleted == 0) {
             log.warn("Metadata not found for deletion: {}", uniqueName);
-            throw new EntityNotFoundException(Messages.FILE_METADATA_NOT_FOUND);
+            throw new EntityNotFoundException(ErrorMessages.FILE_METADATA_NOT_FOUND);
         }
         log.info("Deleted file metadata with uniqueName: {}", uniqueName);
     }
@@ -43,7 +43,7 @@ public class FileMetadataService {
     public String getUniqueNameByOriginalFilename(String originalFileName) {
         FileMetadata fileMetadata = fileMetadataRepository.findByOriginalName(originalFileName)
                 .orElseThrow(() -> new EntityNotFoundException(
-                        String.format(Messages.FILE_NOT_FOUND, originalFileName)));
+                        String.format(ErrorMessages.FILE_NOT_FOUND, originalFileName)));
         return fileMetadata.getUniqueName();
     }
 }

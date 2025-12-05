@@ -1,10 +1,10 @@
-package org.resume.s3filemanager.service;
+package org.resume.s3filemanager.service.file;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.resume.s3filemanager.exception.DuplicateFileException;
-import org.resume.s3filemanager.exception.Messages;
+import org.resume.s3filemanager.constant.ErrorMessages;
 import org.resume.s3filemanager.repository.FileMetadataRepository;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +22,7 @@ public class FileHashService {
     public void checkDuplicateInDatabase(String fileHash) {
         if (fileMetadataRepository.existsByFileHash(fileHash)) {
             log.error("Duplicate file hash found fileHash: {}", fileHash);
-            throw new DuplicateFileException(Messages.DUPLICATE_FILE_ERROR);
+            throw new DuplicateFileException(ErrorMessages.DUPLICATE_FILE_ERROR);
         }
     }
 }

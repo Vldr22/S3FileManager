@@ -1,4 +1,4 @@
-package org.resume.s3filemanager.dto;
+package org.resume.s3filemanager.enums;
 
 public enum ResponseStatus {
     SUCCESS,

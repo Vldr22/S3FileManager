@@ -1,11 +1,11 @@
-package org.resume.s3filemanager.service;
+package org.resume.s3filemanager.service.file;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.resume.s3filemanager.dto.FileDownloadResponse;
 import org.resume.s3filemanager.exception.FileUploadException;
-import org.resume.s3filemanager.exception.Messages;
+import org.resume.s3filemanager.constant.ErrorMessages;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,9 +23,12 @@ public class FileFacadeService {
     private final FileHashService fileHashService;
     private final YandexStorageService fileStorageService;
     private final FileMetadataService fileMetadataService;
+    private final FileUploadPermissionService fileUploadPermissionService;
 
     @Transactional
     public void uploadFile(MultipartFile file) {
+        fileUploadPermissionService.checkUploadPermission();
+
         String uniqueFileName = generateUniqueUUIDFileName(file.getOriginalFilename());
 
         try {
@@ -33,16 +36,17 @@ public class FileFacadeService {
             String fileHash = fileHashService.calculateMD5(bytes);
             fileHashService.checkDuplicateInDatabase(fileHash);
 
-            fileMetadataService.saveDatabaseMetadata(file, uniqueFileName, fileHash);
             fileStorageService.uploadFileYandexS3(uniqueFileName, bytes, file.getContentType());
+            fileMetadataService.saveDatabaseMetadata(file, uniqueFileName, fileHash);
 
+            fileUploadPermissionService.markFileUploaded();
             log.info("File uploaded successfully: {}", uniqueFileName);
         } catch (IOException e) {
             log.error("I/O error processing file: {}", file.getOriginalFilename(), e);
-            throw new FileUploadException(Messages.FILE_UPLOAD_ERROR, file.getOriginalFilename());
+            throw new FileUploadException(ErrorMessages.FILE_UPLOAD_ERROR, file.getOriginalFilename());
         } catch (Exception e) {
             log.error("Error uploading file: {}", file.getOriginalFilename(), e);
-            throw new FileUploadException(Messages.FILE_UPLOAD_ERROR, file.getOriginalFilename());
+            throw new FileUploadException(ErrorMessages.FILE_UPLOAD_ERROR, file.getOriginalFilename());
         }
     }
 

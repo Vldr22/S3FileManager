@@ -21,5 +21,4 @@ public class PageableProperties {
     @Max(value = 100, message = "Max page size must not exceed 100")
     private final int maxPageSize;
 
-
 }

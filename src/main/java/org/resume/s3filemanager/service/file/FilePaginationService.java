@@ -1,4 +1,4 @@
-package org.resume.s3filemanager.service;
+package org.resume.s3filemanager.service.file;
 
 import lombok.RequiredArgsConstructor;
 import org.resume.s3filemanager.dto.FileResponse;
