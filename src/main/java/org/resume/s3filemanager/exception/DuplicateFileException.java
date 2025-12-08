@@ -1,11 +1,9 @@
 package org.resume.s3filemanager.exception;
 
-public class DuplicateFileException extends RuntimeException {
-    public DuplicateFileException(String message) {
-        super(message);
-    }
+import org.resume.s3filemanager.constant.ErrorMessages;
 
-    public DuplicateFileException(String message, Throwable cause) {
-        super(message, cause);
+public class DuplicateFileException extends RuntimeException {
+    public DuplicateFileException() {
+        super(ErrorMessages.DUPLICATE_FILE_ERROR);
     }
 }

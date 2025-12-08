@@ -6,12 +6,15 @@ import org.resume.s3filemanager.constant.SuccessMessages;
 import org.resume.s3filemanager.dto.CommonResponse;
 import org.resume.s3filemanager.dto.FileDownloadResponse;
 import org.resume.s3filemanager.service.file.FileFacadeService;
+import org.resume.s3filemanager.validation.ValidFile;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+@Validated
 @RestController
 @RequestMapping("api/files")
 @RequiredArgsConstructor
@@ -23,7 +26,7 @@ public class FileController {
     @PostMapping("/upload")
     @ResponseStatus(HttpStatus.CREATED)
     public CommonResponse<String> upload (@RequestParam("file")
-            MultipartFile file) {
+            @ValidFile MultipartFile file) {
         fileFacadeService.uploadFile(file);
         return CommonResponse.success(SuccessMessages.FILE_UPLOAD_SUCCESS);
     }

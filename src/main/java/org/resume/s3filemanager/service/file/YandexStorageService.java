@@ -5,7 +5,6 @@ import com.amazonaws.services.s3.model.*;
 import com.amazonaws.util.IOUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.resume.s3filemanager.constant.ErrorMessages;
 import org.resume.s3filemanager.exception.S3YandexException;
 import org.resume.s3filemanager.properties.YandexStorageProperties;
 import org.springframework.stereotype.Service;
@@ -33,14 +32,13 @@ public class YandexStorageService {
                     metadata
             );
             yandexS3Client.putObject(request);
-            log.info("File uploaded to S3: {}, size: {} bytes", uniqueFileName, bytes.length);
 
         } catch (AmazonS3Exception e) {
             log.error("S3 error uploading file: {}", uniqueFileName, e);
-            throw new S3YandexException(ErrorMessages.FILE_STORAGE_ERROR, e);
+            throw new S3YandexException(e, uniqueFileName);
         } catch (Exception e) {
             log.error("Unexpected error uploading file: {}", uniqueFileName, e);
-            throw new S3YandexException(ErrorMessages.FILE_STORAGE_ERROR, e);
+            throw new S3YandexException(e, uniqueFileName);
         }
     }
 
@@ -48,26 +46,23 @@ public class YandexStorageService {
         try (S3Object s3Object = yandexS3Client.getObject(properties.getBucketName(), uniqueFileName);
              S3ObjectInputStream inputStream = s3Object.getObjectContent()) {
 
-            byte[] data = IOUtils.toByteArray(inputStream);
-            log.info("File downloaded from S3: {}, size: {} bytes", uniqueFileName, data.length);
-            return data;
+            return IOUtils.toByteArray(inputStream);
 
         } catch (AmazonS3Exception e) {
             log.error("File not found in S3: {}", uniqueFileName, e);
-            throw new S3YandexException(ErrorMessages.FILE_STORAGE_ERROR, e);
+            throw new S3YandexException(e, uniqueFileName);
         } catch (IOException e) {
             log.error("IO error downloading file: {}", uniqueFileName, e);
-            throw new S3YandexException(ErrorMessages.FILE_STORAGE_ERROR, e);
+            throw new S3YandexException(e, uniqueFileName);
         }
     }
 
     public void deleteFileYandexS3(String fileName) {
         try {
             yandexS3Client.deleteObject(properties.getBucketName(), fileName);
-            log.info("File deleted from S3: {}", fileName);
         } catch (AmazonS3Exception e) {
             log.error("S3 error deleting file: {}", fileName, e);
-            throw new S3YandexException(ErrorMessages.FILE_STORAGE_ERROR, e);
+            throw new S3YandexException(e, fileName);
         }
     }
 

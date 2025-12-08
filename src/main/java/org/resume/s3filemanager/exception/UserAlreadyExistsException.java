@@ -1,11 +1,9 @@
 package org.resume.s3filemanager.exception;
 
-public class UserAlreadyExistsException extends RuntimeException {
-    public UserAlreadyExistsException(String message) {
-        super(message);
-    }
+import org.resume.s3filemanager.constant.ErrorMessages;
 
-    public UserAlreadyExistsException(String message, Throwable cause) {
-        super(message, cause);
+public class UserAlreadyExistsException extends RuntimeException {
+    public UserAlreadyExistsException() {
+        super(ErrorMessages.USER_ALREADY_EXISTS);
     }
 }

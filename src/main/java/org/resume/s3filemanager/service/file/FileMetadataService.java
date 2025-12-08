@@ -1,11 +1,10 @@
 package org.resume.s3filemanager.service.file;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.resume.s3filemanager.entity.FileMetadata;
-import org.resume.s3filemanager.constant.ErrorMessages;
+import org.resume.s3filemanager.exception.FileNotFoundException;
 import org.resume.s3filemanager.repository.FileMetadataRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileMetadataService {
 
     private final FileMetadataRepository fileMetadataRepository;
+    private final FileUploadPermissionService fileUploadPermissionService;
 
     public void saveDatabaseMetadata(MultipartFile file, String uniqueName, String fileHash) {
         FileMetadata metadata = FileMetadata.builder()
@@ -27,23 +27,29 @@ public class FileMetadataService {
                 .build();
 
         fileMetadataRepository.save(metadata);
-        log.info("Saving database metadata: {}", metadata);
+    }
+
+    @Transactional
+    public void saveFileWithPermission(MultipartFile file, String uniqueFileName, String fileHash) {
+        saveDatabaseMetadata(file, uniqueFileName, fileHash);
+        fileUploadPermissionService.markFileUploaded();
     }
 
     @Transactional
     public void deleteDatabaseMetadata(String uniqueName) {
         int deleted = fileMetadataRepository.deleteByUniqueName(uniqueName);
         if (deleted == 0) {
-            log.warn("Metadata not found for deletion: {}", uniqueName);
-            throw new EntityNotFoundException(ErrorMessages.FILE_METADATA_NOT_FOUND);
+            log.warn("File metadata not found for deletion: {}", uniqueName);
+            throw new FileNotFoundException(uniqueName);
         }
-        log.info("Deleted file metadata with uniqueName: {}", uniqueName);
     }
 
     public String getUniqueNameByOriginalFilename(String originalFileName) {
         FileMetadata fileMetadata = fileMetadataRepository.findByOriginalName(originalFileName)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format(ErrorMessages.FILE_NOT_FOUND, originalFileName)));
+                .orElseThrow(() -> {
+                    log.warn("File not found: {}", originalFileName);
+                    return new FileNotFoundException(originalFileName);
+                });
         return fileMetadata.getUniqueName();
     }
 }

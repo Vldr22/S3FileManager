@@ -1,11 +1,13 @@
 package org.resume.s3filemanager.exception;
 
-public class S3YandexException extends RuntimeException {
-    public S3YandexException(String message) {
-        super(message);
-    }
+import lombok.Getter;
 
-    public S3YandexException(String message, Throwable cause) {
-        super(message, cause);
+@Getter
+public class S3YandexException extends RuntimeException {
+    private final String fileName;
+
+    public S3YandexException(Throwable cause, String fileName) {
+        super(cause);
+        this.fileName = fileName;
     }
 }
