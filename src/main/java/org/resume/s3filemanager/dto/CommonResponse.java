@@ -32,7 +32,7 @@ public class CommonResponse<T> {
     public static <T> CommonResponse<T> error(ProblemDetail problemDetail) {
         return new CommonResponse<>(
                 null,
-                ResponseStatus.SUCCESS,
+                ResponseStatus.ERROR,
                 problemDetail,
                 LocalDateTime.now());
     }
