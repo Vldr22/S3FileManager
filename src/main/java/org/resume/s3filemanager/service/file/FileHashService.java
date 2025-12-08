@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.resume.s3filemanager.exception.DuplicateFileException;
-import org.resume.s3filemanager.constant.ErrorMessages;
 import org.resume.s3filemanager.repository.FileMetadataRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -19,10 +19,11 @@ public class FileHashService {
         return DigestUtils.md5Hex(fileBytes);
     }
 
+    @Transactional(readOnly = true)
     public void checkDuplicateInDatabase(String fileHash) {
         if (fileMetadataRepository.existsByFileHash(fileHash)) {
-            log.error("Duplicate file hash found fileHash: {}", fileHash);
-            throw new DuplicateFileException(ErrorMessages.DUPLICATE_FILE_ERROR);
+            log.warn("Duplicate file with hash: {}", fileHash);
+            throw new DuplicateFileException();
         }
     }
 }
