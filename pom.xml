@@ -65,9 +65,10 @@
         </dependency>
 
         <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-s3</artifactId>
-            <version>1.12.638</version>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.40.2</version>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>

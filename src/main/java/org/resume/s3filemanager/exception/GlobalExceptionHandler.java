@@ -1,6 +1,5 @@
 package org.resume.s3filemanager.exception;
 
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +21,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.util.Objects;
 
@@ -156,10 +156,13 @@ public class GlobalExceptionHandler {
     }
 
     // === S3 ===
-    @ExceptionHandler(AmazonS3Exception.class)
+    @ExceptionHandler(S3Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public CommonResponse<Void> handleAmazonS3(AmazonS3Exception e) {
-        log.error("AWS S3 error: {} (status: {})", e.getErrorCode(), e.getStatusCode(), e);
+    public CommonResponse<Void> handleAmazonS3(S3Exception e) {
+        log.error("AWS S3 error: {} (status: {})",
+                e.awsErrorDetails().errorCode(),
+                e.statusCode(),
+                e);
         return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ErrorMessages.FILE_STORAGE_ERROR);
     }
 
