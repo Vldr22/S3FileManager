@@ -11,9 +11,9 @@ import java.util.Optional;
 
 public interface FileMetadataRepository extends JpaRepository<FileMetadata, Long> {
 
-    boolean existsByFileHash(String fileHash);
+    boolean existsByFileHashAndUserId(String fileHash, Long userId);
 
-    Optional<FileMetadata> findByOriginalName(String originalName);
+    Optional<FileMetadata> findByUniqueName(String uniqueName);
 
     @Modifying
     @Transactional

@@ -16,6 +16,7 @@ public class ErrorMessages {
     public static final String FILE_ALREADY_BEEN_UPLOADED = "File already been uploaded";
     public static final String FILE_SIZE_EXCEEDED = "File size exceeds the maximum allowed limit of %s";
     public static final String FILE_READ_ERROR = "Failed to read file";
+    public static final String ACCESS_DENIED_DELETE_FILE = "Cannot delete other user's file";
 
     // Database
     public static final String DATA_INTEGRITY_UNIQUE = "Record with this data already exists";

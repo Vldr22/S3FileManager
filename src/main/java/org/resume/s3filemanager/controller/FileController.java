@@ -1,6 +1,5 @@
 package org.resume.s3filemanager.controller;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.resume.s3filemanager.constant.SuccessMessages;
 import org.resume.s3filemanager.dto.CommonResponse;
@@ -21,7 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileController {
 
     private final FileFacadeService fileFacadeService;
-    private final static String FILENAME_NOT_EMPTY = "filename cannot be empty";
 
     @PostMapping("/upload")
     @ResponseStatus(HttpStatus.CREATED)
@@ -31,13 +29,10 @@ public class FileController {
         return CommonResponse.success(SuccessMessages.FILE_UPLOAD_SUCCESS);
     }
 
-    @GetMapping("/{fileName}")
-    public ResponseEntity<ByteArrayResource> download(
-            @PathVariable
-            @NotBlank(message = FILENAME_NOT_EMPTY)
-            String fileName) {
+    @GetMapping("/{uniqueName}")
+    public ResponseEntity<ByteArrayResource> download(@PathVariable String uniqueName) {
 
-        FileDownloadResponse response = fileFacadeService.downloadFile(fileName);
+        FileDownloadResponse response = fileFacadeService.downloadFile(uniqueName);
         ByteArrayResource resource = new ByteArrayResource(response.getContent());
 
         return ResponseEntity
@@ -48,9 +43,9 @@ public class FileController {
                 .body(resource);
     }
 
-    @DeleteMapping("/{fileName}")
+    @DeleteMapping("/{uniqueName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable String fileName) {
-        fileFacadeService.deleteFile(fileName);
+    public void delete(@PathVariable String uniqueName) {
+        fileFacadeService.deleteFile(uniqueName);
     }
 }

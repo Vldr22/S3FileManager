@@ -6,7 +6,6 @@ import org.springframework.util.DigestUtils;
 import org.resume.s3filemanager.exception.DuplicateFileException;
 import org.resume.s3filemanager.repository.FileMetadataRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -19,10 +18,9 @@ public class FileHashService {
         return DigestUtils.md5DigestAsHex(fileBytes);
     }
 
-    @Transactional(readOnly = true)
-    public void checkDuplicateInDatabase(String fileHash) {
-        if (fileMetadataRepository.existsByFileHash(fileHash)) {
-            log.warn("Duplicate file with hash: {}", fileHash);
+    public void checkDuplicateInDatabase(String fileHash, Long userId) {
+        if (fileMetadataRepository.existsByFileHashAndUserId(fileHash, userId)) {
+            log.warn("Duplicate file detected with hash: {} for user: {}", fileHash, userId);
             throw new DuplicateFileException();
         }
     }

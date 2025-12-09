@@ -10,6 +10,7 @@ import org.resume.s3filemanager.exception.UserNotFoundException;
 import org.resume.s3filemanager.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -53,5 +54,11 @@ public class UserService {
 
     public boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
+    }
+
+    @Transactional
+    public void updateUploadStatus(User user, FileUploadStatus status) {
+        user.setUploadStatus(status);
+        userRepository.save(user);
     }
 }

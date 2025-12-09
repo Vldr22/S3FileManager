@@ -31,4 +31,8 @@ public class FileMetadata {
 
     @Column(length = 64, nullable = false, unique = true)
     private String fileHash;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

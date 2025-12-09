@@ -3,7 +3,8 @@ package org.resume.s3filemanager.service.file;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.resume.s3filemanager.dto.FileDownloadResponse;
-import org.springframework.transaction.annotation.Transactional;
+import org.resume.s3filemanager.entity.FileMetadata;
+import org.resume.s3filemanager.entity.User;
 import org.resume.s3filemanager.exception.FileReadException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -22,21 +23,21 @@ public class FileFacadeService {
     private final FileHashService fileHashService;
     private final YandexStorageService fileStorageService;
     private final FileMetadataService fileMetadataService;
-    private final FileUploadPermissionService fileUploadPermissionService;
+    private final FilePermissionService filePermissionService;
 
     public void uploadFile(MultipartFile file) {
-        fileUploadPermissionService.checkUploadPermission();
+        User user = filePermissionService.checkUploadPermission();
 
         String uniqueFileName = generateUniqueUUIDFileName(file.getOriginalFilename());
         byte[] fileBytes = readFileBytes(file);
         String fileHash = fileHashService.calculateMD5(fileBytes);
 
-        fileHashService.checkDuplicateInDatabase(fileHash);
+        fileHashService.checkDuplicateInDatabase(fileHash, user.getId());
 
         fileStorageService.uploadFileYandexS3(uniqueFileName, fileBytes, file.getContentType());
 
         try {
-            fileMetadataService.saveFileWithPermission(file, uniqueFileName, fileHash);
+            fileMetadataService.saveFileWithPermission(file, uniqueFileName, fileHash, user);
             log.info("File uploaded successfully: {}", uniqueFileName);
         } catch (Exception e) {
             log.warn("DB save failed, rolling back S3 upload: {}", uniqueFileName);
@@ -45,26 +46,34 @@ public class FileFacadeService {
         }
     }
 
-    public FileDownloadResponse downloadFile(String fileName) {
-        byte[] data = fetchFileBytes(fileName);
+    public FileDownloadResponse downloadFile(String uniqueName) {
+        byte[] data = fileStorageService.downloadFileYandexS3(uniqueName);
 
-        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
-                .replace("+", "%20");
+        FileMetadata metadata = fileMetadataService.findByUniqueName(uniqueName);
+
+        String encodedFileName = URLEncoder.encode(
+                metadata.getOriginalName(),
+                StandardCharsets.UTF_8
+        ).replace("+", "%20");
+
 
         return FileDownloadResponse.builder()
                 .content(data)
                 .fileName(encodedFileName)
-                .contentType("application/octet-stream")
+                .contentType(metadata.getType())
                 .size(data.length)
                 .build();
     }
 
-    @Transactional
-    public void deleteFile(String fileName) {
-        String uniqueName = fileMetadataService.getUniqueNameByOriginalFilename(fileName);
-        fileMetadataService.deleteDatabaseMetadata(uniqueName);
+    public void deleteFile(String uniqueName) {
+        User currentUser = filePermissionService.getCurrentUser();
+        FileMetadata file = fileMetadataService.findByUniqueName(uniqueName);
+        filePermissionService.checkDeletePermission(currentUser, file);
+
         fileStorageService.deleteFileYandexS3(uniqueName);
-        log.info("File {} deleted successfully from S3 and DB", fileName);
+
+        fileMetadataService.deleteFileAndUpdateUserStatus(file);
+        log.info("File deleted successfully: {}", uniqueName);
     }
 
     private byte[] readFileBytes(MultipartFile file) {
@@ -89,10 +98,5 @@ public class FileFacadeService {
         String extension = StringUtils.getFilenameExtension(originalFilename);
         extension = (extension != null && !extension.isBlank()) ? extension : "tmp";
         return UUID.randomUUID() + "." + extension;
-    }
-
-    private byte[] fetchFileBytes(String fileName) {
-        String uniqueName = fileMetadataService.getUniqueNameByOriginalFilename(fileName);
-        return fileStorageService.downloadFileYandexS3(uniqueName);
     }
 }
