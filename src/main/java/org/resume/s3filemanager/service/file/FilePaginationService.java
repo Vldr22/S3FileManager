@@ -20,6 +20,7 @@ public class FilePaginationService {
         return fileMetadataPage.map(
                 file -> FileResponse.builder()
                         .fileName(file.getOriginalName())
+                        .uniqueName(file.getUniqueName())
                         .fileSize(convertToMB(file.getSize()))
                         .build());
     }

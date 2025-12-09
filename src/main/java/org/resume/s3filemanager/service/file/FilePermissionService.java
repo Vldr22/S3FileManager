@@ -3,8 +3,11 @@ package org.resume.s3filemanager.service.file;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.resume.s3filemanager.entity.FileMetadata;
 import org.resume.s3filemanager.entity.User;
 import org.resume.s3filemanager.enums.FileUploadStatus;
+import org.resume.s3filemanager.enums.UserRole;
+import org.resume.s3filemanager.exception.FileAccessDeniedException;
 import org.resume.s3filemanager.exception.FileUploadLimitException;
 import org.resume.s3filemanager.exception.UserNotFoundException;
 import org.resume.s3filemanager.repository.UserRepository;
@@ -14,15 +17,15 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FileUploadPermissionService {
+public class FilePermissionService {
 
     private final UserRepository userRepository;
 
-    public void checkUploadPermission() {
+    public User checkUploadPermission() {
         User user = getCurrentUser();
 
         if (user.getUploadStatus() == FileUploadStatus.UNLIMITED) {
-            return;
+            return user;
         }
 
         if (user.getUploadStatus() == FileUploadStatus.FILE_UPLOADED) {
@@ -31,6 +34,16 @@ public class FileUploadPermissionService {
         }
 
         log.debug("Upload permission granted for user: {}", user.getUsername());
+        return user;
+    }
+
+    public void checkDeletePermission(User currentUser, FileMetadata file) {
+        boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
+        boolean isOwner = file.getUser().getId().equals(currentUser.getId());
+
+        if (!isAdmin && !isOwner) {
+            throw new FileAccessDeniedException();
+        }
     }
 
     @Transactional
@@ -43,7 +56,7 @@ public class FileUploadPermissionService {
         }
     }
 
-    private User getCurrentUser() {
+    public User getCurrentUser() {
         String username = MySecurityUtils.getCurrentUsername();
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> {

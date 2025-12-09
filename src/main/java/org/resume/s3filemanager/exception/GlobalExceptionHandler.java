@@ -63,6 +63,12 @@ public class GlobalExceptionHandler {
         return createErrorResponse(HttpStatus.NOT_FOUND, ErrorMessages.USER_NOT_FOUND);
     }
 
+    @ExceptionHandler(FileAccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public CommonResponse<Void> handleFileAccessDenied(FileAccessDeniedException e) {
+        return createErrorResponse(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
     // ========== TECHNICAL EXCEPTIONS  ==========
     @ExceptionHandler(FileReadException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
