@@ -10,6 +10,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -20,59 +21,55 @@ public class FileValidator implements ConstraintValidator<ValidFile, MultipartFi
 
     @Override
     public boolean isValid(MultipartFile file, ConstraintValidatorContext context) {
+        Optional<String> error = validateFile(file);
+        return error.map(s -> addViolation(context, s)).orElse(true);
+    }
+
+    public Optional<String> validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            return addViolation(context, ValidationMessages.FILE_EMPTY);
+            return Optional.of(ValidationMessages.FILE_EMPTY);
         }
 
         String filename = file.getOriginalFilename();
         if (filename == null || filename.isBlank()) {
-            return addViolation(context, ValidationMessages.FILE_TYPE_UNKNOWN);
+            return Optional.of(ValidationMessages.FILE_TYPE_UNKNOWN);
         }
 
         String extension = StringUtils.getFilenameExtension(filename);
         if (extension == null || extension.isBlank()) {
-            return addViolation(context, ValidationMessages.FILE_TYPE_UNKNOWN);
+            return Optional.of(ValidationMessages.FILE_TYPE_UNKNOWN);
         }
         extension = extension.toLowerCase();
 
         String contentType = file.getContentType();
         if (contentType == null || contentType.isBlank()) {
-            return addViolation(context, ValidationMessages.FILE_TYPE_UNKNOWN);
+            return Optional.of(ValidationMessages.FILE_TYPE_UNKNOWN);
         }
 
         if (!AllowedFileType.isAllowed(extension, contentType)) {
-            return addViolation(context,
-                    String.format(ValidationMessages.FILE_TYPE_NOT_ALLOWED, extension, contentType));
+            return Optional.of(
+                    String.format(ValidationMessages.FILE_TYPE_NOT_ALLOWED, extension, contentType)
+            );
         }
 
-        return validateRealContentType(file, contentType, filename, extension, context);
-    }
-
-
-
-    private boolean validateRealContentType(MultipartFile file, String declaredContentType,
-                                            String filename, String extension, ConstraintValidatorContext context) {
         try {
             byte[] fileBytes = file.getBytes();
-            boolean isValid = tikaFileDetector.verifyContentType(
-                    fileBytes,
-                    filename,
-                    declaredContentType
-            );
+            boolean isValid = tikaFileDetector.verifyContentType(fileBytes, filename, contentType);
 
             if (!isValid) {
-                return addViolation(context,
-                        String.format(ValidationMessages.FILE_SIGNATURE_MISMATCH, extension));
+                return Optional.of(
+                        String.format(ValidationMessages.FILE_SIGNATURE_MISMATCH, extension)
+                );
             }
 
-            return true;
+            return Optional.empty();
 
         } catch (IOException e) {
             log.error("Error reading file: {}", filename, e);
-            return addViolation(context, ValidationMessages.FILE_PROCESSING_ERROR);
+            return Optional.of(ValidationMessages.FILE_PROCESSING_ERROR);
         } catch (Exception e) {
             log.error("Unexpected error during validation: {}", filename, e);
-            return addViolation(context, ValidationMessages.FILE_PROCESSING_ERROR);
+            return Optional.of(ValidationMessages.FILE_PROCESSING_ERROR);
         }
     }
 
