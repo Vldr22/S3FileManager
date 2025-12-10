@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/files/{uniqueName}").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/files/upload").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/files/{uniqueName}").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/files/multiple-upload").hasAuthority(UserRole.ADMIN.getAuthority())
                         .requestMatchers("/api/admin/**").hasAuthority(UserRole.ADMIN.getAuthority())
                         .requestMatchers("/api/auth/logout").authenticated()
                         .anyRequest().authenticated())

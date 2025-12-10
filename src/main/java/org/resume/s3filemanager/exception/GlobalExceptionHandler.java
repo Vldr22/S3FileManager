@@ -31,6 +31,7 @@ public class GlobalExceptionHandler {
 
     @Value("${spring.servlet.multipart.max-file-size:30MB}")
     private String maxFileSize;
+    public static final String ERRORS = "errors";
 
     // ========== BUSINESS EXCEPTIONS  ==========
     @ExceptionHandler(DuplicateFileException.class)
@@ -67,6 +68,22 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public CommonResponse<Void> handleFileAccessDenied(FileAccessDeniedException e) {
         return createErrorResponse(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
+    @ExceptionHandler(MultipleFileUploadException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public CommonResponse<Void> handleFileUploadException(MultipleFileUploadException e) {
+        return createErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                ErrorMessages.FILES_UPLOAD_ERROR,
+                e.getResponses()
+        );
+    }
+
+    @ExceptionHandler(TooManyFilesException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public CommonResponse<Void> handleTooManyFilesException(TooManyFilesException e) {
+        return createErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
     // ========== TECHNICAL EXCEPTIONS  ==========
@@ -219,6 +236,12 @@ public class GlobalExceptionHandler {
     // ========== HELPER ==========
     private CommonResponse<Void> createErrorResponse(HttpStatus status, String detail) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);
+        return CommonResponse.error(problemDetail);
+    }
+
+    private CommonResponse<Void> createErrorResponse(HttpStatus status, String detail, Object extra) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);
+        problemDetail.setProperty(ERRORS, extra);
         return CommonResponse.error(problemDetail);
     }
 }

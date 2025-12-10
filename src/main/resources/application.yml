@@ -56,7 +56,6 @@ app:
   security:
     cookie-secure: false
 
-
   jwt:
     secretKey: ${JWT_SECRET_KEY}
     expiration: 86400  # 24h
@@ -69,6 +68,9 @@ app:
   admin:
     name: ${ADMIN_NAME}
     password: ${ADMIN_PASSWORD}
+
+  multiple-upload:
+    max-batch-size: 5
 
 logging:
   level:
