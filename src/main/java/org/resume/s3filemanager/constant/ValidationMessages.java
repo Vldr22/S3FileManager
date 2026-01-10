@@ -2,6 +2,9 @@ package org.resume.s3filemanager.constant;
 
 import lombok.experimental.UtilityClass;
 
+/**
+ * Константы для сообщений связанных с валидацией
+ */
 @UtilityClass
 public class ValidationMessages {
 

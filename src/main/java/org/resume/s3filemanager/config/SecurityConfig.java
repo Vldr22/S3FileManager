@@ -22,6 +22,20 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+/**
+ * Конфигурация Spring Security для защиты REST API.
+ * <p>
+ * Настраивает:
+ * <ul>
+ *   <li>JWT аутентификацию через cookie</li>
+ *   <li>Stateless session management</li>
+ *   <li>CORS политику из конфигурации</li>
+ *   <li>Авторизацию на уровне endpoint'ов по ролям</li>
+ * </ul>
+ * Публичные endpoints: /api/auth/login, /api/auth/register, /api/home
+ *
+ * @see JwtTokenFilter
+ */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -54,6 +68,25 @@ public class SecurityConfig {
         return source;
     }
 
+    /**
+     * Настраивает цепочку фильтров безопасности.
+     * <p>
+     * Публичные пути:
+     * <ul>
+     *   <li>/api/auth/* - регистрация и вход</li>
+     *   <li>/api/home - список файлов без аутентификации</li>
+     * </ul>
+     * Защищенные пути:
+     * <ul>
+     *   <li>/api/files/* - требуют аутентификации</li>
+     *   <li>/api/files/multiple-upload - только ADMIN</li>
+     *   <li>/api/admin/* - только ADMIN</li>
+     * </ul>
+     *
+     * @param http конфигуратор HTTP безопасности
+     * @return настроенная цепочка фильтров
+     * @throws Exception при ошибке конфигурации
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http

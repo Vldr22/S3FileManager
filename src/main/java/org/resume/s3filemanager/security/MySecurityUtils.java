@@ -1,18 +1,19 @@
 package org.resume.s3filemanager.security;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.resume.s3filemanager.constant.SecurityConstants;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Arrays;
-
+/**
+ * Утилитарный класс для работы с Spring Security контекстом.
+ * <p>
+ * Предоставляет удобные методы для получения информации о текущем
+ * аутентифицированном пользователе, его ролях и IP адресе клиента.
+ */
 @Slf4j
 @UtilityClass
 public class MySecurityUtils {
@@ -20,10 +21,21 @@ public class MySecurityUtils {
     private static final String ANONYMOUS_USER = "anonymousUser";
     private static final String UNKNOWN = "unknown";
 
+
+    /**
+     * Получает объект аутентификации из SecurityContext.
+     *
+     * @return текущая аутентификация или null
+     */
     public static Authentication getCurrentAuthentication() {
         return SecurityContextHolder.getContext().getAuthentication();
     }
 
+    /**
+     * Получает имя текущего аутентифицированного пользователя.
+     *
+     * @return имя пользователя или null для не аутентифицированных/анонимных пользователей
+     */
     public static String getCurrentUsername() {
         Authentication auth = getCurrentAuthentication();
 
@@ -40,40 +52,14 @@ public class MySecurityUtils {
         return principal instanceof String ? (String) principal : null;
     }
 
-    public static boolean hasRole(String role) {
-        Authentication auth = getCurrentAuthentication();
-
-        if (auth == null || !auth.isAuthenticated()) {
-            return false;
-        }
-
-        return auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(authority -> authority.equals(role));
-    }
-
-    public static String getCurrentToken() {
-        HttpServletRequest request = getCurrentRequest();
-        if (request == null) {
-            return null;
-        }
-
-        return extractTokenFromRequest(request);
-    }
-
-    private static String extractTokenFromRequest(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            return null;
-        }
-
-        return Arrays.stream(cookies)
-                .filter(cookie -> SecurityConstants.COOKIE_NAME.equals(cookie.getName()))
-                .map(Cookie::getValue)
-                .findFirst()
-                .orElse(null);
-    }
-
+    /**
+     * Получает IP адрес клиента с учетом прокси и балансировщиков.
+     * <p>
+     * Проверяет заголовки X-Forwarded-For и X-Real-IP перед использованием
+     * RemoteAddr для корректного определения IP за прокси.
+     *
+     * @return IP адрес клиента или "unknown"
+     */
     public static String getClientIp() {
         HttpServletRequest request = getCurrentRequest();
         if (request == null) {

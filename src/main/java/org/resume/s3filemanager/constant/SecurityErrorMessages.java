@@ -2,6 +2,9 @@ package org.resume.s3filemanager.constant;
 
 import lombok.experimental.UtilityClass;
 
+/**
+ * Константы сообщений об ошибках для исключений связанные с безопасностью
+ */
 @UtilityClass
 public class SecurityErrorMessages {
 

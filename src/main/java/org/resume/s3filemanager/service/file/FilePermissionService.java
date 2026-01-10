@@ -14,6 +14,12 @@ import org.resume.s3filemanager.repository.UserRepository;
 import org.resume.s3filemanager.security.MySecurityUtils;
 import org.springframework.stereotype.Service;
 
+/**
+ * Сервис для проверки прав доступа к операциям с файлами.
+ * <p>
+ * Управляет разрешениями на загрузку и удаление файлов в зависимости от
+ * роли пользователя и его статуса загрузки.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -21,6 +27,16 @@ public class FilePermissionService {
 
     private final UserRepository userRepository;
 
+    /**
+     * Проверяет права пользователя на загрузку файла.
+     * <p>
+     * Пользователи со статусом UNLIMITED могут загружать неограниченно.
+     * Обычные пользователи могут загрузить только один файл.
+     *
+     * @return текущий пользователь с подтвержденными правами
+     * @throws FileUploadLimitException если пользователь уже загрузил файл
+     * @throws UserNotFoundException если текущий пользователь не найден
+     */
     public User checkUploadPermission() {
         User user = getCurrentUser();
 
@@ -37,6 +53,16 @@ public class FilePermissionService {
         return user;
     }
 
+    /**
+     * Проверяет права пользователя на удаление файла.
+     * <p>
+     * Обычные пользователи могут удалять только свои файлы.
+     * Администраторы могут удалять любые файлы.
+     *
+     * @param currentUser текущий пользователь
+     * @param file метаданные файла для проверки владения
+     * @throws FileAccessDeniedException если пользователь пытается удалить чужой файл
+     */
     public void checkDeletePermission(User currentUser, FileMetadata file) {
         boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
         boolean isOwner = file.getUser().getId().equals(currentUser.getId());
@@ -46,6 +72,13 @@ public class FilePermissionService {
         }
     }
 
+
+    /**
+     * Помечает файл как загруженный для текущего пользователя.
+     * <p>
+     * Обновляет статус пользователя с NOT_UPLOADED на FILE_UPLOADED.
+     * Пользователи со статусом UNLIMITED не изменяются.
+     */
     @Transactional
     public void markFileUploaded() {
         User user = getCurrentUser();
@@ -56,6 +89,12 @@ public class FilePermissionService {
         }
     }
 
+    /**
+     * Получает текущего аутентифицированного пользователя из контекста безопасности.
+     *
+     * @return текущий пользователь
+     * @throws UserNotFoundException если пользователь не найден в базе данных
+     */
     public User getCurrentUser() {
         String username = MySecurityUtils.getCurrentUsername();
         return userRepository.findByUsername(username)

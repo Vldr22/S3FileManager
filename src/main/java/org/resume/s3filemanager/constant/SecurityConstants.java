@@ -2,6 +2,9 @@ package org.resume.s3filemanager.constant;
 
 import lombok.experimental.UtilityClass;
 
+/**
+ * Константы для JWT аутентификации и безопасности.
+ */
 @UtilityClass
 public class SecurityConstants {
 

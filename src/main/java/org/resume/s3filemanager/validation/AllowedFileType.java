@@ -7,6 +7,12 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Перечисление разрешенных типов файлов для загрузки.
+ * <p>
+ * Содержит MIME-типы и расширения файлов, организованные по категориям:
+ * документы, изображения, видео, аудио, архивы и текстовые файлы.
+ */
 @Getter
 @RequiredArgsConstructor
 public enum AllowedFileType {
@@ -53,17 +59,20 @@ public enum AllowedFileType {
     private final String contentType;
     private final String extension;
 
+    /**
+     * Проверяет, разрешен ли файл с указанным расширением и MIME-типом.
+     * <p>
+     * Оба параметра должны совпадать с одной из комбинаций в enum.
+     *
+     * @param extension расширение файла (без точки)
+     * @param contentType MIME-тип файла
+     * @return true если комбинация разрешена, false в противном случае
+     */
     public static boolean isAllowed(String extension, String contentType) {
         return Arrays.stream(values())
                 .anyMatch(type ->
                         type.extension.equalsIgnoreCase(extension) &&
                                 type.contentType.equalsIgnoreCase(contentType)
                 );
-    }
-
-    public static Set<String> getAllowedContentTypes() {
-        return Arrays.stream(values())
-                .map(AllowedFileType::getContentType)
-                .collect(Collectors.toSet());
     }
 }
