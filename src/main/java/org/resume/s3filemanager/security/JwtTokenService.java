@@ -1,6 +1,7 @@
 package org.resume.s3filemanager.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -19,6 +20,14 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
+/**
+ * Сервис для генерации и parsing'а JWT токенов.
+ * <p>
+ * Использует HMAC-SHA алгоритм с секретным ключом из конфигурации.
+ * Токены содержат subject (имя пользователя) и роль в claims.
+ *
+ * @see JwtTokenProperties
+ */
 @Service
 @EnableConfigurationProperties(JwtTokenProperties.class)
 public class JwtTokenService {
@@ -41,6 +50,20 @@ public class JwtTokenService {
         }
     }
 
+    /**
+     * Генерирует JWT токен для пользователя с указанной ролью.
+     * <p>
+     * Токен содержит:
+     * <ul>
+     *   <li>Subject: имя пользователя</li>
+     *   <li>Claim 'role': роль пользователя</li>
+     *   <li>Expiration: время истечения токена</li>
+     * </ul>
+     *
+     * @param subject имя пользователя (subject в токене)
+     * @param userRole роль пользователя
+     * @return подписанный JWT токен
+     */
     public String generateToken(String subject, UserRole userRole) {
         Instant now = Instant.now();
         Instant expiration = now.plus(expirationSeconds, ChronoUnit.SECONDS);
@@ -56,10 +79,24 @@ public class JwtTokenService {
                 .compact();
     }
 
+    /**
+     * Извлекает имя пользователя (subject) из JWT токена.
+     *
+     * @param token JWT токен для parsing'а
+     * @return имя пользователя
+     * @throws JwtException если токен невалидный или истек
+     */
     public String extractSubject(String token) {
         return extractClaims(token).getSubject();
     }
 
+    /**
+     * Извлекает роль пользователя из claims токена.
+     *
+     * @param token JWT токен для parsing'а
+     * @return роль пользователя в формате authority (например, "ROLE_USER")
+     * @throws JwtException если токен невалидный или истек
+     */
     public String extractRole(String token) {
         return extractClaims(token).get(SecurityConstants.CLAIM_ROLE, String.class);
     }

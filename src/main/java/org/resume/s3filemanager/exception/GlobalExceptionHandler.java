@@ -25,6 +25,22 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.util.Objects;
 
+/**
+ * Глобальный обработчик исключений для REST API.
+ * <p>
+ * Перехватывает исключения из всех контроллеров и преобразует их
+ * в унифицированный формат ответа {@link CommonResponse} с ProblemDetail.
+ * <p>
+ * Обрабатывает:
+ * <ul>
+ *   <li>Бизнес-исключения (DuplicateFile, UserNotFound, и т.д.)</li>
+ *   <li>Технические исключения (S3, FileRead)</li>
+ *   <li>Framework исключения (Validation, Security, Database)</li>
+ * </ul>
+ *
+ * @see CommonResponse
+ * @see ProblemDetail
+ */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {

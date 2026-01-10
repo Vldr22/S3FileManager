@@ -12,6 +12,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 
+/**
+ * Конфигурация Spring MVC для пагинации.
+ * <p>
+ * Настраивает {@link PageableHandlerMethodArgumentResolver} с параметрами
+ * пагинации по умолчанию из конфигурационных properties.
+ *
+ * @see PageableProperties
+ */
 @Configuration
 @RequiredArgsConstructor
 @EnableConfigurationProperties(PageableProperties.class)

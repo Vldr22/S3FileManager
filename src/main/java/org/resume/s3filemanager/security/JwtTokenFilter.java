@@ -23,6 +23,17 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 
+/**
+ * Фильтр для аутентификации запросов на основе JWT токенов.
+ * <p>
+ * Извлекает JWT из cookie, проверяет его валидность через whitelist,
+ * и устанавливает аутентификацию в SecurityContext для авторизованных запросов.
+ * <p>
+ * Публичные пути (login, register, home) пропускаются без проверки токена.
+ *
+ * @see JwtTokenService
+ * @see JwtWhitelistService
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -39,6 +50,19 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             "/api/home"
     };
 
+    /**
+     * Определяет, должен ли фильтр пропустить данный запрос.
+     * <p>
+     * Публичные пути не требуют аутентификации:
+     * <ul>
+     *   <li>/api/auth/login</li>
+     *   <li>/api/auth/register</li>
+     *   <li>/api/home</li>
+     * </ul>
+     *
+     * @param request HTTP запрос
+     * @return true если запрос к публичному пути, false в противном случае
+     */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
@@ -46,6 +70,19 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 .anyMatch(uri::startsWith);
     }
 
+    /**
+     * Выполняет фильтрацию запроса с проверкой JWT токена.
+     * <p>
+     * Извлекает токен из cookie, проверяет его в whitelist'е,
+     * извлекает роль пользователя и устанавливает аутентификацию.
+     * При ошибках валидации или истечении токена возвращает 401.
+     *
+     * @param request HTTP запрос
+     * @param response HTTP ответ
+     * @param filterChain цепочка фильтров
+     * @throws ServletException при ошибке обработки запроса
+     * @throws IOException при ошибке ввода-вывода
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,

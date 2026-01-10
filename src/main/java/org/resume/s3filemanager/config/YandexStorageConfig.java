@@ -12,6 +12,15 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 import java.net.URI;
 
+/**
+ * Конфигурация S3 клиента для Yandex Object Storage.
+ * <p>
+ * Создает {@link S3Client} с настройками подключения к Yandex Cloud
+ * через AWS SDK v2 с использованием S3-совместимого API.
+ *
+ * @see YandexStorageProperties
+ * @see S3Client
+ */
 @Configuration
 @RequiredArgsConstructor
 @EnableConfigurationProperties({YandexStorageProperties.class})

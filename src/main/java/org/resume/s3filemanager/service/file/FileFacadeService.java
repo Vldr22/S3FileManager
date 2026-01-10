@@ -26,6 +26,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Фасадный сервис для работы с файлами.
+ * <p>
+ * Координирует операции загрузки, скачивания и удаления файлов,
+ * взаимодействуя с валидацией, s3 хранилищем и сервисами БД.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -39,12 +45,41 @@ public class FileFacadeService {
     private final FileValidator fileValidator;
     private final FileUploadProperties fileUploadProperties;
 
-    // Публичный API
+
+    /**
+     * Загружает один файл с проверкой прав пользователя.
+     * <p>
+     * Выполняет следующие операции:
+     * <ul>
+     *   <li>Проверяет права пользователя на загрузку</li>
+     *   <li>Генерирует уникальное имя файла</li>
+     *   <li>Проверяет наличие дубликатов (в рамках пользователя)</li>
+     *   <li>Загружает файл в S3 хранилище</li>
+     *   <li>Сохраняет метаданные в базу данных</li>
+     * </ul>
+     *
+     * @param file загружаемый файл
+     * @throws FileUploadLimitException если пользователь уже загрузил файл
+     * @throws DuplicateFileException если файл с таким хешем уже существует у пользователя
+     * @throws S3YandexException при ошибке загрузки в S3
+     */
     public void uploadFile(MultipartFile file) {
         User user = filePermissionService.checkUploadPermission();
         uploadFileInternal(file, user);
     }
 
+    /**
+     * Множественная загрузка файлов (только для администратора).
+     * <p>
+     * Реализует паттерн частичного успеха: валидные файлы загружаются, в то время как
+     * невалидные отклоняются с конкретными сообщениями об ошибках. Хотя бы один файл
+     * должен быть успешно загружен.
+     *
+     * @param files массив загружаемых файлов (максимум 5)
+     * @return список результатов загрузки для каждого файла со статусом и сообщением
+     * @throws TooManyFilesException если количество файлов превышает настроенный максимум
+     * @throws MultipleFileUploadException если все файлы не прошли загрузку
+     */
     public List<MultipleUploadResponse> multipleUpload(MultipartFile[] files) {
         validateBatchUpload(files);
         User admin = filePermissionService.checkUploadPermission();
@@ -69,6 +104,14 @@ public class FileFacadeService {
         return results;
     }
 
+    /**
+     * Скачивает файл по уникальному имени
+     *
+     * @param uniqueName the UUID-based unique filename
+     * @return file download response with content and metadata
+     * @throws FileNotFoundException if file metadata not found in database
+     * @throws S3YandexException if S3 download fails
+     */
     public FileDownloadResponse downloadFile(String uniqueName) {
         byte[] data = fileStorageService.downloadFileYandexS3(uniqueName);
         FileMetadata metadata = fileMetadataService.findByUniqueName(uniqueName);
@@ -86,6 +129,16 @@ public class FileFacadeService {
                 .build();
     }
 
+    /**
+     * Удаляет файл с проверкой прав владения.
+     * <p>
+     * Пользователи могут удалять только свои файлы. Администраторы могут удалять любые файлы.
+     * Сбрасывает статус загрузки пользователя на NOT_UPLOADED, если владелец удаляет файл.
+     *
+     * @param uniqueName уникальное имя файла на основе UUID
+     * @throws FileNotFoundException если файл не найден
+     * @throws FileAccessDeniedException если пользователь пытается удалить чужой файл
+     */
     public void deleteFile(String uniqueName) {
         User currentUser = filePermissionService.getCurrentUser();
         FileMetadata file = fileMetadataService.findByUniqueName(uniqueName);
@@ -97,7 +150,16 @@ public class FileFacadeService {
         log.info("File deleted successfully: {}", uniqueName);
     }
 
-    // Основная логика
+    /**
+     * Основная логика загрузки файла без проверки прав.
+     * <p>
+     * Реализует паттерн Saga: при ошибке сохранения метаданных
+     * выполняется компенсирующая транзакция (удаление из S3).
+     *
+     * @param file загружаемый файл
+     * @param user пользователь-владелец файла
+     * @return уникальное имя загруженного файла
+     */
     private String uploadFileInternal(MultipartFile file, User user) {
         String uniqueFileName = generateUniqueFileName(file.getOriginalFilename());
         byte[] fileBytes = readFileBytes(file);
@@ -117,6 +179,12 @@ public class FileFacadeService {
         }
     }
 
+    /**
+     * Обрабатывает один файл в рамках пакетной загрузки.
+     * <p>
+     * Выполняет валидацию и загрузку, возвращая результат
+     * независимо от успеха (паттерн частичного успеха).
+     */
     private MultipleUploadResponse processSingleFile(MultipartFile file, User admin) {
         try {
 
@@ -133,7 +201,6 @@ public class FileFacadeService {
         }
     }
 
-    // VALIDATION
     private void validateBatchUpload(MultipartFile[] files) {
         if (files == null || files.length == 0) {
             throw new IllegalArgumentException(ValidationMessages.FILE_EMPTY);
@@ -144,7 +211,6 @@ public class FileFacadeService {
         }
     }
 
-    // Multiple-upload responses
     private MultipleUploadResponse createSuccessResponse(MultipartFile file, String uniqueName) {
         return new MultipleUploadResponse(
                 ResponseStatus.SUCCESS,

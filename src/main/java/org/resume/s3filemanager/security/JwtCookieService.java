@@ -13,6 +13,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 
+/**
+ * Сервис для управления JWT токенами в HTTP cookie.
+ * <p>
+ * Обеспечивает установку, очистку и извлечение JWT токенов из HTTP-only cookie,
+ * обеспечивая безопасную передачу токенов между клиентом и сервером.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -22,16 +28,35 @@ public class JwtCookieService {
     private final JwtTokenService jwtTokenService;
     private final SecurityProperties securityProperties;
 
+    /**
+     * Устанавливает JWT токен в HTTP-only cookie.
+     * <p>
+     * Cookie имеет атрибуты: HttpOnly, Secure (в production), SameSite=Strict.
+     *
+     * @param response HTTP ответ для установки cookie
+     * @param token JWT токен для сохранения
+     */
     public void setAuthCookie(HttpServletResponse response, String token) {
         ResponseCookie cookie = createCookie(token, jwtTokenService.getExpirationSeconds());
         response.addHeader("Set-Cookie", cookie.toString());
     }
 
+    /**
+     * Очищает JWT cookie, устанавливая maxAge в 0.
+     *
+     * @param response HTTP ответ для очистки cookie
+     */
     public void clearAuthCookie(HttpServletResponse response) {
         ResponseCookie cookie = createCookie("", 0);
         response.addHeader("Set-Cookie", cookie.toString());
     }
 
+    /**
+     * Извлекает JWT токен из HTTP cookie запроса.
+     *
+     * @param request HTTP запрос с cookie
+     * @return JWT токен или null, если cookie не найден
+     */
     public String extractToken(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {

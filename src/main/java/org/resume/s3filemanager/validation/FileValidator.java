@@ -12,6 +12,19 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Optional;
 
+/**
+ * Валидатор файлов с двухуровневой проверкой типа.
+ * <p>
+ * Выполняет валидацию на основе:
+ * <ul>
+ *   <li>Расширения и MIME-типа файла (первый уровень)</li>
+ *   <li>Реальной сигнатуры файла через Apache Tika (второй уровень)</li>
+ * </ul>
+ * Защищает от подмены типа файла путем переименования.
+ *
+ * @see ValidFile
+ * @see TikaFileDetector
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -19,12 +32,34 @@ public class FileValidator implements ConstraintValidator<ValidFile, MultipartFi
 
     private final TikaFileDetector tikaFileDetector;
 
+    /**
+     * Выполняет Bean Validation проверку файла.
+     *
+     * @param file файл для валидации
+     * @param context контекст валидатора для добавления ошибок
+     * @return true если файл валиден, false в противном случае
+     */
     @Override
     public boolean isValid(MultipartFile file, ConstraintValidatorContext context) {
         Optional<String> error = validateFile(file);
         return error.map(s -> addViolation(context, s)).orElse(true);
     }
 
+    /**
+     * Выполняет программную валидацию файла без Bean Validation контекста.
+     * <p>
+     * Используется для пакетной загрузки, где требуется обработка частичного успеха.
+     * Проверяет:
+     * <ul>
+     *   <li>Наличие файла и наличие в нем содержания</li>
+     *   <li>Корректность имени файла и расширения</li>
+     *   <li>Тип файла является разрешенным</li>
+     *   <li>Соответствие реальной сигнатуры заявленному типу</li>
+     * </ul>
+     *
+     * @param file файл для валидации
+     * @return Optional с сообщением об ошибке, если файл невалиден; пустой Optional, если валиден
+     */
     public Optional<String> validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             return Optional.of(ValidationMessages.FILE_EMPTY);
