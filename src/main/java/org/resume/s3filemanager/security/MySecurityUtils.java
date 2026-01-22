@@ -3,6 +3,7 @@ package org.resume.s3filemanager.security;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.resume.s3filemanager.constant.SecurityConstants;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -12,15 +13,13 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  * Утилитарный класс для работы с Spring Security контекстом.
  * <p>
  * Предоставляет удобные методы для получения информации о текущем
- * аутентифицированном пользователе, его ролях и IP адресе клиента.
+ * аутентифицированном пользователе и IP адресе клиента.
  */
 @Slf4j
 @UtilityClass
 public class MySecurityUtils {
 
     private static final String ANONYMOUS_USER = "anonymousUser";
-    private static final String UNKNOWN = "unknown";
-
 
     /**
      * Получает объект аутентификации из SecurityContext.
@@ -53,17 +52,17 @@ public class MySecurityUtils {
     }
 
     /**
-     * Получает IP адрес клиента с учетом прокси и балансировщиков.
+     * Извлекает IP адрес клиента из HTTP запроса.
      * <p>
      * Проверяет заголовки X-Forwarded-For и X-Real-IP перед использованием
      * RemoteAddr для корректного определения IP за прокси.
      *
+     * @param request HTTP запрос
      * @return IP адрес клиента или "unknown"
      */
-    public static String getClientIp() {
-        HttpServletRequest request = getCurrentRequest();
+    public static String extractClientIp(HttpServletRequest request) {
         if (request == null) {
-            return UNKNOWN;
+            return null;
         }
 
         String forwardedFor = request.getHeader("X-Forwarded-For");
@@ -76,7 +75,26 @@ public class MySecurityUtils {
             return realIp;
         }
 
-        return request.getRemoteAddr();
+        String remoteAddr = request.getRemoteAddr();
+
+        // Localhost normalization для единообразия
+        if ("0:0:0:0:0:0:0:1".equals(remoteAddr) || "::1".equals(remoteAddr)) {
+            return "127.0.0.1";
+        }
+
+        return remoteAddr;
+    }
+
+    /**
+     * Получает IP адрес клиента из текущего контекста запроса.
+     * <p>
+     * Проверяет заголовки X-Forwarded-For и X-Real-IP перед использованием
+     * RemoteAddr для корректного определения IP за прокси.
+     *
+     * @return IP адрес клиента или "unknown"
+     */
+    public static String getClientIp() {
+        return extractClientIp(getCurrentRequest());
     }
 
     private static HttpServletRequest getCurrentRequest() {
