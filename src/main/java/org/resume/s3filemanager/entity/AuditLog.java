@@ -7,7 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.Type;
 import org.resume.s3filemanager.audit.AuditOperation;
 import org.resume.s3filemanager.audit.ResourceType;
-import org.resume.s3filemanager.enums.ResponseStatus;
+import org.resume.s3filemanager.enums.CommonResponseStatus;
 
 import java.time.Instant;
 
@@ -44,7 +44,7 @@ public class AuditLog {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private ResponseStatus status;
+    private CommonResponseStatus status;
 
     @Column(columnDefinition = "TEXT")
     private String details;

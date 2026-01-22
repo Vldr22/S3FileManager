@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.resume.s3filemanager.constant.MdcConstants;
 import org.resume.s3filemanager.constant.SecurityConstants;
-import org.resume.s3filemanager.enums.ResponseStatus;
+import org.resume.s3filemanager.enums.CommonResponseStatus;
 import org.slf4j.MDC;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,7 @@ public class AuditEventPublisher {
                         AuditOperation operation,
                         ResourceType resourceType,
                         String resourceId,
-                        ResponseStatus status,
+                        CommonResponseStatus status,
                         String details) {
         try {
             String requestId = MDC.get(MdcConstants.REQUEST_ID);
@@ -64,6 +64,6 @@ public class AuditEventPublisher {
                                String resourceId,
                                Exception exception) {
         publish(source, operation, resourceType, resourceId,
-                ResponseStatus.ERROR, exception.getMessage());
+                CommonResponseStatus.ERROR, exception.getMessage());
     }
 }

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.resume.s3filemanager.enums.ResponseStatus;
+import org.resume.s3filemanager.enums.CommonResponseStatus;
 import org.springframework.http.ProblemDetail;
 
 import java.time.LocalDateTime;
@@ -17,14 +17,14 @@ import java.time.LocalDateTime;
 public class CommonResponse<T> {
 
     private T data;
-    private ResponseStatus status;
+    private CommonResponseStatus status;
     private ProblemDetail problemDetail;
     private LocalDateTime timestamp;
 
     public static <T> CommonResponse<T> success(T data) {
          return new CommonResponse<>(
                  data,
-                 ResponseStatus.SUCCESS,
+                 CommonResponseStatus.SUCCESS,
                  null,
                  LocalDateTime.now());
     }
@@ -32,7 +32,7 @@ public class CommonResponse<T> {
     public static <T> CommonResponse<T> error(ProblemDetail problemDetail) {
         return new CommonResponse<>(
                 null,
-                ResponseStatus.ERROR,
+                CommonResponseStatus.ERROR,
                 problemDetail,
                 LocalDateTime.now());
     }

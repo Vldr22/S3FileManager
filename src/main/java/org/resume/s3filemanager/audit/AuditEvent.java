@@ -1,7 +1,7 @@
 package org.resume.s3filemanager.audit;
 
 import lombok.Getter;
-import org.resume.s3filemanager.enums.ResponseStatus;
+import org.resume.s3filemanager.enums.CommonResponseStatus;
 import org.springframework.context.ApplicationEvent;
 
 import java.time.Instant;
@@ -18,7 +18,7 @@ public class AuditEvent extends ApplicationEvent {
     private final AuditOperation operation;
     private final ResourceType resourceType;
     private final String resourceId;
-    private final ResponseStatus status;
+    private final CommonResponseStatus status;
     private final String details;
     private final Instant occurredAt;
 
@@ -29,7 +29,7 @@ public class AuditEvent extends ApplicationEvent {
                       AuditOperation operation,
                       ResourceType resourceType,
                       String resourceId,
-                      ResponseStatus status,
+                      CommonResponseStatus status,
                       String details) {
         super(source);
         this.requestId = requestId;

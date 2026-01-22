@@ -7,7 +7,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.resume.s3filemanager.constant.SecurityConstants;
-import org.resume.s3filemanager.enums.ResponseStatus;
+import org.resume.s3filemanager.enums.CommonResponseStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,7 +37,7 @@ public class AuditAspect {
                     operation,
                     resourceType,
                     resourceId,
-                    ResponseStatus.SUCCESS,
+                    CommonResponseStatus.SUCCESS,
                     null
             );
 
@@ -50,7 +50,7 @@ public class AuditAspect {
                     operation,
                     resourceType,
                     resourceId,
-                    ResponseStatus.ERROR,
+                    CommonResponseStatus.ERROR,
                     e.getMessage()
             );
             throw e;
