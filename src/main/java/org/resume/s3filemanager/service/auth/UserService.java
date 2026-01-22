@@ -5,9 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.resume.s3filemanager.entity.User;
 import org.resume.s3filemanager.enums.FileUploadStatus;
 import org.resume.s3filemanager.enums.UserRole;
+import org.resume.s3filemanager.enums.UserStatus;
 import org.resume.s3filemanager.exception.UserAlreadyExistsException;
 import org.resume.s3filemanager.exception.UserNotFoundException;
 import org.resume.s3filemanager.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,6 +96,32 @@ public class UserService {
     public void updateUploadStatus(User user, FileUploadStatus status) {
         user.setUploadStatus(status);
         userRepository.save(user);
+    }
+
+    public Page<User> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+    public User findById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+    }
+
+    @Transactional
+    public void updateStatus(User user, UserStatus status) {
+        user.setStatus(status);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void updateStatus(User user, FileUploadStatus uploadStatus) {
+        user.setUploadStatus(uploadStatus);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void delete(User user) {
+        userRepository.delete(user);
     }
 
     private void createUserWithRole(String username, String password,

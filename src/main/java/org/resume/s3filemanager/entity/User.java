@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.resume.s3filemanager.enums.FileUploadStatus;
 import org.resume.s3filemanager.enums.UserRole;
+import org.resume.s3filemanager.enums.UserStatus;
 
 @Entity
 @Getter
@@ -29,5 +30,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private FileUploadStatus uploadStatus = FileUploadStatus.NOT_UPLOADED;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus status = UserStatus.ACTIVE;
 
 }

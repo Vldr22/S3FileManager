@@ -11,7 +11,9 @@ import org.resume.s3filemanager.dto.AuthRequest;
 import org.resume.s3filemanager.dto.LoginResponse;
 import org.resume.s3filemanager.entity.User;
 import org.resume.s3filemanager.enums.UserRole;
+import org.resume.s3filemanager.enums.UserStatus;
 import org.resume.s3filemanager.exception.UserAlreadyExistsException;
+import org.resume.s3filemanager.exception.UserBlockedException;
 import org.resume.s3filemanager.exception.UserNotFoundException;
 import org.resume.s3filemanager.security.JwtWhitelistService;
 import org.resume.s3filemanager.security.JwtCookieService;
@@ -51,8 +53,9 @@ public class AuthService {
      * @param request запрос с именем пользователя и паролем
      * @param response HTTP ответ для установки cookie
      * @return информация о входе с токеном, именем пользователя и ролью
-     * @throws BadCredentialsException если учетные данные неверны
      * @throws UserNotFoundException если пользователь не найден
+     * @throws UserBlockedException если пользователь заблокирован
+     * @throws BadCredentialsException если учетные данные неверны
      */
     public LoginResponse login(AuthRequest request, HttpServletResponse response) {
         User user = verifyCredentials(request.getUsername(), request.getPassword());
@@ -104,13 +107,14 @@ public class AuthService {
     private User verifyCredentials(String username, String password) {
         User user = userService.findByUsername(username);
 
+        if (user.getStatus() == UserStatus.BLOCKED) {
+            log.warn("Blocked user attempted login: {}", username);
+            throw new UserBlockedException(username);
+        }
+
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new BadCredentialsException(SecurityErrorMessages.INVALID_CREDENTIALS);
         }
         return user;
-    }
-
-    private UserRole getUserRole(User user) {
-        return user.getRole();
     }
 }
