@@ -121,10 +121,12 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             log.debug("Authentication successful - User: {}, Role: {}", username, role);
 
         } catch (ExpiredJwtException e) {
+            SecurityContextHolder.clearContext();
             sendError(response, request.getRequestURI(), SecurityErrorMessages.TOKEN_EXPIRED);
             log.warn("Token expired for: {}", request.getRequestURI());
             return;
         } catch (Exception e) {
+            SecurityContextHolder.clearContext();
             sendError(response, request.getRequestURI(), SecurityErrorMessages.TOKEN_INVALID);
             log.error("Invalid token for: {}. Error: {}", request.getRequestURI(), e.getMessage());
             return;
