@@ -11,6 +11,7 @@ public class ErrorMessages {
     // User
     public static final String USER_NOT_FOUND = "User not found";
     public static final String USER_ALREADY_EXISTS = "User already exists";
+    public static final String USER_BLOCKED = "User account is blocked!";
 
     // File
     public static final String FILE_NOT_FOUND = "File not found";

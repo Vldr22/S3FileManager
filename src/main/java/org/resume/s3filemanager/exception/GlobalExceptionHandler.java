@@ -102,6 +102,12 @@ public class GlobalExceptionHandler {
         return createErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
+    @ExceptionHandler(UserBlockedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public CommonResponse<Void> handleUserBlocked(UserBlockedException e) {
+        return createErrorResponse(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
     // ========== TECHNICAL EXCEPTIONS  ==========
     @ExceptionHandler(FileReadException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

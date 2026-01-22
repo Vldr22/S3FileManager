@@ -1,14 +1,14 @@
 package org.resume.s3filemanager.dto;
 
 import org.resume.s3filemanager.audit.AuditOperation;
-import org.resume.s3filemanager.enums.ResponseStatus;
+import org.resume.s3filemanager.enums.CommonResponseStatus;
 
 import java.time.Instant;
 
 public record AuditLogFilterRequest(
         String username,
         AuditOperation operation,
-        ResponseStatus status,
+        CommonResponseStatus status,
         Instant from,
-        Instant to
-) {}
+        Instant to) {
+}

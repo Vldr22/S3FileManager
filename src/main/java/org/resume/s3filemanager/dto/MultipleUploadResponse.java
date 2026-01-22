@@ -1,11 +1,11 @@
 package org.resume.s3filemanager.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.resume.s3filemanager.enums.ResponseStatus;
+import org.resume.s3filemanager.enums.CommonResponseStatus;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record MultipleUploadResponse(
-        ResponseStatus status,
+        CommonResponseStatus status,
         String originalFileName,
         String uniqueName,
         String message) {

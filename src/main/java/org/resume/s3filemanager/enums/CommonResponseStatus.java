@@ -1,6 +1,6 @@
 package org.resume.s3filemanager.enums;
 
-public enum ResponseStatus {
+public enum CommonResponseStatus {
     SUCCESS,
     ERROR,
 }

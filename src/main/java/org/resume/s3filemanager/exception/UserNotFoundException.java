@@ -6,11 +6,14 @@ import org.resume.s3filemanager.constant.ErrorMessages;
 @Getter
 public class UserNotFoundException extends RuntimeException {
 
-    private final String username;
+    private final String identifier;
 
-    public UserNotFoundException(String username) {
+    public UserNotFoundException(String identifier) {
         super(ErrorMessages.USER_NOT_FOUND);
-        this.username = username;
+        this.identifier = identifier;
     }
 
+    public UserNotFoundException(Long id) {
+        this(String.valueOf(id));
+    }
 }

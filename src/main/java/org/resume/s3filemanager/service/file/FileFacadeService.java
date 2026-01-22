@@ -12,7 +12,7 @@ import org.resume.s3filemanager.dto.FileDownloadResponse;
 import org.resume.s3filemanager.dto.MultipleUploadResponse;
 import org.resume.s3filemanager.entity.FileMetadata;
 import org.resume.s3filemanager.entity.User;
-import org.resume.s3filemanager.enums.ResponseStatus;
+import org.resume.s3filemanager.enums.CommonResponseStatus;
 import org.resume.s3filemanager.exception.*;
 import org.resume.s3filemanager.properties.FileUploadProperties;
 import org.resume.s3filemanager.validation.FileValidator;
@@ -95,7 +95,7 @@ public class FileFacadeService {
             MultipleUploadResponse response = processSingleFile(file, admin);
             results.add(response);
 
-            if (response.status() == ResponseStatus.SUCCESS) {
+            if (response.status() == CommonResponseStatus.SUCCESS) {
                 successCount++;
             }
         }
@@ -219,7 +219,7 @@ public class FileFacadeService {
 
     private MultipleUploadResponse createSuccessResponse(MultipartFile file, String uniqueName) {
         return new MultipleUploadResponse(
-                ResponseStatus.SUCCESS,
+                CommonResponseStatus.SUCCESS,
                 file.getOriginalFilename(),
                 uniqueName,
                 SuccessMessages.FILE_UPLOAD_SUCCESS
@@ -229,7 +229,7 @@ public class FileFacadeService {
     private MultipleUploadResponse createValidationErrorResponse(MultipartFile file, String errorMessage) {
         log.warn("Validation failed for {}: {}", file.getOriginalFilename(), errorMessage);
         return new MultipleUploadResponse(
-                ResponseStatus.ERROR,
+                CommonResponseStatus.ERROR,
                 file.getOriginalFilename(),
                 null,
                 errorMessage
@@ -257,7 +257,7 @@ public class FileFacadeService {
         };
 
         return new MultipleUploadResponse(
-                ResponseStatus.ERROR,
+                CommonResponseStatus.ERROR,
                 file.getOriginalFilename(),
                 null,
                 errorMessage
