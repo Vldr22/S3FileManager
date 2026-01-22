@@ -8,8 +8,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.resume.s3filemanager.constant.MdcConstants;
 import org.resume.s3filemanager.constant.SecurityErrorMessages;
 import org.resume.s3filemanager.dto.CommonResponse;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -113,6 +115,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            MDC.put(MdcConstants.USERNAME, username);
+
             log.debug("Authentication successful - User: {}, Role: {}", username, role);
 
         } catch (ExpiredJwtException e) {

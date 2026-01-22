@@ -2,6 +2,9 @@ package org.resume.s3filemanager.service.file;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.resume.s3filemanager.audit.AuditOperation;
+import org.resume.s3filemanager.audit.Auditable;
+import org.resume.s3filemanager.audit.ResourceType;
 import org.resume.s3filemanager.constant.ErrorMessages;
 import org.resume.s3filemanager.constant.SuccessMessages;
 import org.resume.s3filemanager.constant.ValidationMessages;
@@ -63,6 +66,7 @@ public class FileFacadeService {
      * @throws DuplicateFileException если файл с таким хешем уже существует у пользователя
      * @throws S3YandexException при ошибке загрузки в S3
      */
+    @Auditable(operation = AuditOperation.FILE_UPLOAD, resourceType = ResourceType.FILE)
     public void uploadFile(MultipartFile file) {
         User user = filePermissionService.checkUploadPermission();
         uploadFileInternal(file, user);
@@ -112,6 +116,7 @@ public class FileFacadeService {
      * @throws FileNotFoundException if file metadata not found in database
      * @throws S3YandexException if S3 download fails
      */
+    @Auditable(operation = AuditOperation.FILE_DOWNLOAD, resourceType = ResourceType.FILE)
     public FileDownloadResponse downloadFile(String uniqueName) {
         byte[] data = fileStorageService.downloadFileYandexS3(uniqueName);
         FileMetadata metadata = fileMetadataService.findByUniqueName(uniqueName);
@@ -139,6 +144,7 @@ public class FileFacadeService {
      * @throws FileNotFoundException если файл не найден
      * @throws FileAccessDeniedException если пользователь пытается удалить чужой файл
      */
+    @Auditable(operation = AuditOperation.FILE_DELETE, resourceType = ResourceType.FILE)
     public void deleteFile(String uniqueName) {
         User currentUser = filePermissionService.getCurrentUser();
         FileMetadata file = fileMetadataService.findByUniqueName(uniqueName);

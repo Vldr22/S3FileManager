@@ -13,4 +13,6 @@ public class SecurityConstants {
     public static final String COOKIE_NAME = "jwt_token";
     public static final String JWT_PREFIX = "jwt:token::";
 
+    public static final String ANONYMOUS = "anonymous";
+    public static final String UNKNOWN = "unknown";
 }
