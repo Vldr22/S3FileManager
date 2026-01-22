@@ -3,6 +3,9 @@ package org.resume.s3filemanager.service.auth;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.resume.s3filemanager.audit.AuditOperation;
+import org.resume.s3filemanager.audit.Auditable;
+import org.resume.s3filemanager.audit.ResourceType;
 import org.resume.s3filemanager.constant.SecurityErrorMessages;
 import org.resume.s3filemanager.dto.AuthRequest;
 import org.resume.s3filemanager.dto.LoginResponse;
@@ -76,6 +79,7 @@ public class AuthService {
      * @param request запрос с именем пользователя и паролем
      * @throws UserAlreadyExistsException если пользователь с таким именем уже существует
      */
+    @Auditable(operation = AuditOperation.REGISTER, resourceType = ResourceType.USER)
     public void register(AuthRequest request) {
         userService.createUser(request.getUsername(), request.getPassword());
         log.info("User registered successfully: {}", request.getUsername());
